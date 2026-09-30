@@ -1,0 +1,13 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {transformSync} from 'esbuild';
+import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {pathToFileURL} from 'node:url';
+import path from 'node:path';
+const out=path.resolve('.sites-runtime/inspection-rules.mjs');mkdirSync(path.dirname(out),{recursive:true});writeFileSync(out,transformSync(readFileSync('app/inspection-rules.ts','utf8'),{loader:'ts',format:'esm'}).code);
+const {applyRecordChange,markInput,canCreateMaintenance,taskUpdateInput}=await import(pathToFileURL(out));
+const fixture={id:'inspection-1',equipmentId:'p-2101a',completed:false,version:1,history:[],marks:[{id:'mark-1',label:'Oxidação aparente',review:'pendente',severity:'moderada',box:[.2,.2,.3,.3]}]};
+test('a pending observation cannot be completed or sent to maintenance',()=>{assert.equal(canCreateMaintenance(fixture),false);assert.throws(()=>applyRecordChange(fixture,{action:'complete'},'Inspector','2026-09-27','unused'));});
+test('review records its author without modifying the original and unlocks maintenance',()=>{const next=applyRecordChange(fixture,{action:'review',markId:'mark-1',review:'confirmada',note:'Avaliar em campo'},'Inspector A','2026-09-27','unused');assert.equal(next.version,2);assert.equal(next.completed,true);assert.equal(next.marks[0].reviewedBy,'Inspector A');assert.equal(next.history.length,1);assert.equal(fixture.marks[0].review,'pendente');assert.equal(canCreateMaintenance(next),true);});
+test('discarded observations do not create maintenance and new annotations reopen review',()=>{const next=applyRecordChange(fixture,{action:'review',markId:'mark-1',review:'descartada'},'Reviewer','2026-09-27','unused');assert.equal(canCreateMaintenance(next),false);const added=applyRecordChange(next,{action:'annotate',mark:{label:'Revestimento degradado',severity:'baixa',box:[.1,.1,.2,.2]}},'Reviewer','2026-09-27','mark-2');assert.equal(added.completed,false);assert.equal(added.marks[1].origin,'manual');});
+test('annotation rejects boxes outside photograph and maintenance requires closure details',()=>{assert.equal(markInput.safeParse({label:'Oxidação externa',severity:'alta',box:[.8,.1,.3,.4]}).success,false);assert.equal(taskUpdateInput.safeParse({version:1,status:'concluida',resolution:''}).success,false);assert.equal(taskUpdateInput.safeParse({version:1,status:'concluida',resolution:'Avaliação concluída em campo.'}).success,true);});

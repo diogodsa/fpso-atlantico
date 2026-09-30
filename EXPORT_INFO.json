@@ -1,0 +1,22 @@
+{
+  "project": "FPSO Atlântico — Explorador 3D",
+  "source_version": 7,
+  "source_commit": "2355321db7ae5c9db2bb6e03fb51e973ab66ef7e",
+  "source_site_url": "https://fpso-atlantico.diogodsa.chatgpt.site",
+  "original_commits": 7,
+  "source_tag": "sites-v7",
+  "export_tag": "github-v7",
+  "application_source_changed": false,
+  "dependency_versions_changed": false,
+  "git_history_included_in_bundle": true,
+  "production_data_included": false,
+  "github_repository_created": false,
+  "preparation_changes": [
+    "Comandos npm portáveis e nome do pacote",
+    "README e instruções para GitHub",
+    "CI com TypeScript, build e testes",
+    "Testes de HTML e CSS para os cinco módulos reais",
+    "Remoção da associação do Site no manifesto da árvore atual; o ID histórico não é uma credencial",
+    "Proteção de arquivos locais via .gitignore"
+  ]
+}
